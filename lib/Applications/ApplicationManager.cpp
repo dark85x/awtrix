@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <TimeApp.h>
 #include <WeatherApp.h>
+#include <WeatherHumApp.h>
 #include <YoutubeApp.h>
 #include <DHT22App.h>
 #include <PetApp.h>
