@@ -28,6 +28,9 @@ IApplication* ApplicationManager::getApplicationWithName(String name) {
     if (name == "Weather") {
         return new WeatherApp();
     }
+     if (name == "WeatherHum") {
+        return new WeatherHumApp();
+    }
 
     if (name == "DHT22") {
         return new DHT22App();
