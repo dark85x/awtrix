@@ -13,9 +13,8 @@
 #define MATRIX_MODE         NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG
 #define MATRIX_TYPE         NEO_GRB + NEO_KHZ800
 
-int Colorcycleperiod = 15;
+int period = 20;
 unsigned long time_now = 0;
-
 
 DisplayManager::DisplayManager() : matrix(MATRIX_WIDTH, MATRIX_HEIGHT, MATRIX_PIN, MATRIX_MODE, MATRIX_TYPE) {
     setup();
@@ -50,20 +49,21 @@ void DisplayManager::setup() {
 
 uint32_t DisplayManager::Wheel(byte WheelPos) {
 
- 
+  
 if (colorCircle==256) colorCircle=0;
-
+Serial.println(WheelPos);
   if(WheelPos < 85) {
-   return matrix.Color((WheelPos * 3), (255 - WheelPos * 3), 0);
+   return matrix.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
   } else if(WheelPos < 170) {
    WheelPos -= 85;
-   return matrix.Color((255 - WheelPos * 3), 0, (WheelPos * 3));
+   return matrix.Color(255 - WheelPos * 3, 0, WheelPos * 3);
   } else {
    WheelPos -= 170;
-   return matrix.Color(0, (WheelPos * 3), (255 - WheelPos * 3));
+   return matrix.Color(0, WheelPos * 3, 255 - WheelPos * 3);
   }
-
 }
+
+
 
 void DisplayManager::drawRect(uint16_t  x0, uint16_t  y0,uint16_t  x1,uint16_t  y1, AwtrixColor rectColor) {
     matrix.drawRect(x0, y0, x1, y1, color(rectColor));
@@ -177,6 +177,7 @@ void DisplayManager::setERR() {
 }
 
 
+
 void DisplayManager::drawText(String text, AwtrixPosition position, boolean refresh,boolean small,boolean gobalColor) {
     if (refresh) {
         matrix.clear();
@@ -188,21 +189,22 @@ void DisplayManager::drawText(String text, AwtrixPosition position, boolean refr
         matrix.setFont();
         matrix.setCursor(position.x, position.y);
     }
-   
-    if(RAINBOW & !SLEEP_MODE){
-      matrix.setTextColor(Wheel(colorCircle));
-       ++colorCircle;
-       delay(5);
-        
-        }else{
-         if(gobalColor)matrix.setTextColor(color({TEXT_COLOR_R,TEXT_COLOR_G,TEXT_COLOR_B}));
-        }
-
+      if(RAINBOW & !SLEEP_MODE){
+             if(millis() > time_now + period){
+                time_now = millis();
+                 matrix.setTextColor(Wheel(colorCircle));
+                 ++colorCircle;
+            }
+            }else{
+        matrix.setTextColor(color({TEXT_COLOR_R,TEXT_COLOR_G,TEXT_COLOR_B}));
+           
+        }   
     matrix.print(text);
+
     matrix.setFont();
-    //delay(20);
-   
+ 
 }
+
 
 void DisplayManager::drawApp(const uint16_t bmp[], String text, AwtrixPosition position, AwtrixColor textColor, bool autoScroll, int wait) {
     int pixelsInText = (text.length() * 6);
@@ -214,31 +216,48 @@ if (autoScroll) {
         while(x > (24 - (pixelsInText+24))){
         matrix.clear();
         matrix.setCursor(--x, 0);
+            if(RAINBOW){
+             if(millis() > time_now + period){
+                time_now = millis();
+                 matrix.setTextColor(Wheel(colorCircle));
+                 ++colorCircle;
+            }
+            }else{
+        matrix.setTextColor(color({TEXT_COLOR_R,TEXT_COLOR_G,TEXT_COLOR_B}));
+           
+        }   
         matrix.print(text);
+
         matrix.drawRGBBitmap(0,0,bmp,8,8);
         matrix.drawFastVLine(8, 0, 8, 0);
         matrix.show();
+     
         delay(s);
         }
     }else{
-        
-        if(RAINBOW){
-              if(millis() > time_now + Colorcycleperiod){
-                time_now = millis();
-                matrix.setTextColor(Wheel(colorCircle));
-                ++colorCircle;
-              }
-        }else{
-            matrix.setTextColor(color({TEXT_COLOR_R,TEXT_COLOR_G,TEXT_COLOR_B}));
-        }
         matrix.setCursor(position.x+9, position.y);
+            
+       if(RAINBOW){
+             if(millis() > time_now + period){
+                time_now = millis();
+                 matrix.setTextColor(Wheel(colorCircle));
+                 ++colorCircle;
+            }
+            }else{
+        matrix.setTextColor(color({TEXT_COLOR_R,TEXT_COLOR_G,TEXT_COLOR_B}));
+           
+        }   
         matrix.print(text);
+        
         matrix.drawRGBBitmap(0,0,bmp,8,8);
         matrix.show();
         matrix.setFont();
-       }
+  
+        }
     }
-     if (text.length()>4)delay(wait);
+    if (text.length()>4) delay(wait);
+    
+
 }
 
 
